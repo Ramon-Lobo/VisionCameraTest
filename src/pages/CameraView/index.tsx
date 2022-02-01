@@ -27,16 +27,18 @@ Animated.addWhitelistedNativeProps({
 });
 
 const CameraView: React.FC = () => {
-  const devices = useCameraDevices();
-  const device = devices.front;
+  const devices = useCameraDevices('dual-camera');
+  const device = devices.back;
   const isFocused = useIsFocused();
   const zoom = useSharedValue(0);
   const [faces, setFaces] = React.useState<Face[]>([]);
   const camera = useRef<Camera>(null);
+  const [isActive, setIsActive] = React.useState<boolean>(true);
 
   React.useEffect(() => {
     console.log(faces);
     if (faces.length > 0) {
+      setIsActive(false);
       takeSnapshot();
     }
   }, [faces]);
@@ -54,10 +56,10 @@ const CameraView: React.FC = () => {
     const snapshot = await camera.current?.takePhoto({
       qualityPrioritization: 'speed',
     });
-    console.log(
-      '🚀 ~ file: index.tsx ~ line 58 ~ takeSnapshot ~ snapshot',
-      snapshot,
-    );
+    // console.log(
+    //   '🚀 ~ file: index.tsx ~ line 58 ~ takeSnapshot ~ snapshot',
+    //   snapshot,
+    // );
   };
 
   const frameProcessor = useFrameProcessor(frame => {
@@ -74,7 +76,7 @@ const CameraView: React.FC = () => {
     <View style={styles.container}>
       <ReanimatedCamera
         ref={camera}
-        isActive={isFocused}
+        isActive={isActive}
         photo={true}
         device={device}
         style={StyleSheet.absoluteFill}
