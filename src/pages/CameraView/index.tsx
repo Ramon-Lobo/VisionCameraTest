@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -32,9 +32,13 @@ const CameraView: React.FC = () => {
   const isFocused = useIsFocused();
   const zoom = useSharedValue(0);
   const [faces, setFaces] = React.useState<Face[]>([]);
+  const camera = useRef<Camera>(null);
 
   React.useEffect(() => {
     console.log(faces);
+    if (faces.length > 0) {
+      takeSnapshot();
+    }
   }, [faces]);
 
   const onRandomZoomPress = useCallback(() => {
@@ -45,6 +49,16 @@ const CameraView: React.FC = () => {
     () => ({zoom: zoom.value}),
     [zoom],
   );
+
+  const takeSnapshot = async () => {
+    const snapshot = await camera.current?.takePhoto({
+      qualityPrioritization: 'speed',
+    });
+    console.log(
+      '🚀 ~ file: index.tsx ~ line 58 ~ takeSnapshot ~ snapshot',
+      snapshot,
+    );
+  };
 
   const frameProcessor = useFrameProcessor(frame => {
     'worklet';
@@ -59,11 +73,14 @@ const CameraView: React.FC = () => {
   return (
     <View style={styles.container}>
       <ReanimatedCamera
+        ref={camera}
         isActive={isFocused}
+        photo={true}
         device={device}
         style={StyleSheet.absoluteFill}
         animatedProps={animatedProps}
         frameProcessor={frameProcessor}
+        frameProcessorFps={0.5}
       />
       {faces.length > 0 && (
         <View style={styles.recordingButton}>
